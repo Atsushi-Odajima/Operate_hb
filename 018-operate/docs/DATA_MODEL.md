@@ -41,7 +41,7 @@ document_relations(kind: related/dependsOn/replaces/derivedFrom), feedback(versi
 quizzes / quiz_versions(questions, settings, 公開後不変) / courses / course_versions(modules, sequential, completion_policy, 公開後不変) / training_assignments(course_version_id+user_id 一意) / module_progress / quiz_attempts(quiz_version_id, question_order, answers, score, result) / certificates(verification_code, HMAC signature) / onboarding_templates / onboarding_runs(template_snapshot)
 
 ## 検索・AI
-search_index(現行公開版のみ, search_text に trigram GIN) / knowledge_chunks(version_id, is_current, section, text, embedding vector(256), HNSW) / embedding_cache(text_hash, model) / search_queries(利用者 ID を持たない) / ai_usage(件数・トークン・費用のみ)
+search_index(現行公開版のみ, search_text に trigram GIN) / knowledge_chunks(version_id, is_current, section, text, embedding vector(256)。ANN インデックスなし＝テナント内の正確検索) / embedding_cache(text_hash, model) / search_queries(利用者 ID を持たない) / ai_usage(件数・トークン・費用のみ)
 
 ## 運用
 notifications(dedupe_key 一意 = 冪等) / jobs(idempotency_key 一意) / audit_events(追記専用) / import_batches / download_tokens(sha256, 10 分, 1 回限り)

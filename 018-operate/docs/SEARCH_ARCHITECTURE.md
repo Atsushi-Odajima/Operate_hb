@@ -24,6 +24,7 @@
 ## AI 用チャンク（knowledge_chunks）
 - 公開時に版をセクション（見出し・手順・チェック項目）単位、約 700 文字以内に分割し、`embedding vector(256)`（ローカル hashing embedding）を付与。
 - 同じテキスト（sha256）の embedding は `embedding_cache` から再利用（版を改訂しても変わらない段落は再計算しない）。
+- **ANN（HNSW）インデックスは使わない**。ANN はテナント・ACL で絞る前に全体の近傍を返すため、多テナント環境では対象テナントの結果が欠落し得る。retrieval は org_id + ACL で絞り込んだ集合に対して正確な距離計算（recall 100%）を行う。1 テナント数万チャンクまでは数十 ms 以内（TEST_REPORT.md）。
 - 旧版チャンクは `is_current=false` で残し、管理者の「過去の版を含める」モードのみで使用。
 
 ## 性能（実測は TEST_REPORT.md）

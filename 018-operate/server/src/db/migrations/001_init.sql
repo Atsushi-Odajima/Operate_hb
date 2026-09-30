@@ -619,7 +619,10 @@ CREATE TABLE knowledge_chunks (
 );
 CREATE INDEX knowledge_chunks_org_current ON knowledge_chunks (org_id, is_current);
 CREATE INDEX knowledge_chunks_doc ON knowledge_chunks (document_id);
-CREATE INDEX knowledge_chunks_hnsw ON knowledge_chunks USING hnsw (embedding vector_cosine_ops);
+-- No ANN (HNSW) index on purpose: an ANN scan returns the global nearest rows and filters by tenant/ACL afterwards,
+-- which can silently drop a tenant's results. Retrieval does an exact distance scan over the (small) set of chunks
+-- already restricted by org_id + ACL (100% recall). See docs/SEARCH_ARCHITECTURE.md.
+CREATE INDEX knowledge_chunks_org_doc ON knowledge_chunks (org_id, document_id) WHERE is_current;
 CREATE INDEX knowledge_chunks_text_trgm ON knowledge_chunks USING gin (text gin_trgm_ops);
 
 CREATE TABLE embedding_cache (
