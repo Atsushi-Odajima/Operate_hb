@@ -61,8 +61,8 @@ export async function buildApp(opts: { logger?: boolean } = {}) {
 
   if (config.webDist && existsSync(config.webDist)) {
     await app.register(fastifyStatic, { root: config.webDist, wildcard: false, setHeaders: (res, path) => {
-      if (path.endsWith('sw.js') || path.endsWith('index.html') || path.endsWith('manifest.webmanifest')) (res as any).setHeader('Cache-Control', 'no-cache');
-      else if (path.includes('/assets/')) (res as any).setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      if (path.endsWith('sw.js') || path.endsWith('index.html') || path.endsWith('manifest.webmanifest')) (res as any).header('Cache-Control', 'no-cache');
+      else if (path.includes('/assets/')) (res as any).header('Cache-Control', 'public, max-age=31536000, immutable');
     } });
     app.setNotFoundHandler((req, reply) => {
       if (req.url.startsWith('/api/')) return reply.code(404).send({ error: 'not_found', message: '見つかりません' });

@@ -103,10 +103,36 @@ function snippet(body: string, ts: string[]): string {
   return (start > 0 ? '…' : '') + s + (start + 140 < norm.length ? '…' : '');
 }
 
+/** Key bigrams of a CJK sentence without particles (e.g. 「返金問い合わせの最初の手順は？」 -> 返金, 金問, 最初, 手順). */
+export function fuzzyTerms(q: string): string[] {
+  const t = normalizeText(q);
+  const out = new Set<string>();
+  for (const w of t.match(/[a-z0-9]{2,}/g) ?? []) out.add(w);
+  for (const seg of t.split(/[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}ー]+/u)) {
+    const c = [...seg];
+    for (let i = 0; i < c.length - 1; i++) {
+      const bg = c[i] + c[i + 1];
+      if (!/\p{Script=Hiragana}/u.test(bg)) out.add(bg);
+    }
+  }
+  return [...out].slice(0, 24);
+}
+
 export async function searchDocuments(db: Db, actor: Actor, q: string, f: SearchFilters, limit: number, offset: number) {
-  const ts = terms(q);
+  const exact = await searchWith(db, actor, q, f, limit, offset, false);
+  if (exact.total > 0 || !q.trim()) return { ...exact, fuzzy: false };
+  // Nothing matched every word (typical for a question typed as a sentence): fall back to key-term coverage.
+  const fuzzy = await searchWith(db, actor, q, f, limit, offset, true);
+  return { ...fuzzy, fuzzy: fuzzy.total > 0 };
+}
+
+async function searchWith(db: Db, actor: Actor, q: string, f: SearchFilters, limit: number, offset: number, fuzzy: boolean) {
+  const ts = fuzzy ? fuzzyTerms(q) : terms(q);
+  if (fuzzy && ts.length < 2) return { total: 0, items: [] };
   const conds: SQL[] = [sql`si.org_id = ${db.orgId}`, docReadable(actor, 'd'), raw(`d.status = 'published'`)];
-  for (const t of ts) conds.push(sql`si.search_text LIKE ${'%' + likeEscape(t) + '%'}`);
+  const coverage = sql`(SELECT count(*) FROM unnest(${ts}::text[]) t WHERE si.search_text LIKE '%' || t || '%')::float / ${Math.max(1, ts.length)}`;
+  if (fuzzy) conds.push(sql`${coverage} >= 0.5`);
+  else for (const t of ts) conds.push(sql`si.search_text LIKE ${'%' + likeEscape(t) + '%'}`);
   if (f.type) conds.push(sql`d.type = ${f.type}`);
   if (f.departmentId) conds.push(sql`d.department_id = ${f.departmentId}::uuid`);
   if (f.classification) conds.push(sql`d.classification = ${f.classification}`);
@@ -114,7 +140,7 @@ export async function searchDocuments(db: Db, actor: Actor, q: string, f: Search
   if (f.category) conds.push(sql`d.category = ${f.category}`);
   if (f.tag) conds.push(sql`${f.tag} = ANY(d.tags)`);
   const nq = normalizeText(q);
-  const score = ts.length
+  const score = fuzzy ? sql`(${coverage} * 3 + similarity(si.title, ${nq}))` : ts.length
     ? sql`(similarity(si.title, ${nq}) * 2 + word_similarity(${nq}, si.search_text) + CASE WHEN lower(si.title) LIKE ${'%' + likeEscape(nq) + '%'} THEN 1 ELSE 0 END)`
     : raw('0');
   const rows = await db.q(sql`

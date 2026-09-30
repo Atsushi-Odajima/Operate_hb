@@ -121,7 +121,11 @@ export default async function documentRoutes(app: FastifyInstance) {
       ? await db.one(sql`SELECT id, status, major, minor, title, change_type, change_summary, edit_seq, content_hash, author_id, ai_generated, publish_mode, scheduled_publish_at, effective_date, updated_at, review_round, require_reattestation
           FROM document_versions WHERE document_id = ${params.id} AND status IN ('draft','in_review','changes_requested','pending_approval','approved','scheduled')`)
       : null;
-    const audiences = actor.isExternal ? [] : await db.q(sql`SELECT kind, target FROM document_audiences WHERE document_id = ${params.id} ORDER BY kind`);
+    const audiences = actor.isExternal ? [] : await db.q(sql`SELECT a.kind, a.target,
+        CASE a.kind WHEN 'department' THEN (SELECT name FROM departments WHERE id::text = a.target)
+                    WHEN 'team' THEN (SELECT dp.name || '/' || t.name FROM teams t JOIN departments dp ON dp.id = t.department_id WHERE t.id::text = a.target)
+                    WHEN 'user' THEN (SELECT name FROM users WHERE id::text = a.target) ELSE a.target END AS label
+      FROM document_audiences a WHERE a.document_id = ${params.id} ORDER BY a.kind`);
     const relations = await db.q(sql`
       SELECT r.id, r.kind, 'out' AS dir, d2.id AS document_id, d2.title, d2.status, d2.doc_number FROM document_relations r JOIN documents d2 ON d2.id = r.to_document_id
        WHERE r.from_document_id = ${params.id} AND ${docAccessible(actor, 'd2')}

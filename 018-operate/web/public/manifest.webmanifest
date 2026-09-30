@@ -1,0 +1,20 @@
+{
+  "name": "Operate",
+  "short_name": "Operate",
+  "description": "会社のマニュアル・新人教育・ルール変更を、ひとつにまとめる。",
+  "lang": "ja",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "検索", "url": "/search", "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }] },
+    { "name": "研修", "url": "/training", "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }] }
+  ]
+}
