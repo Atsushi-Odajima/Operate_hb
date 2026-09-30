@@ -1,0 +1,22 @@
+NEXT_STEPS.txt — セッション再開用メモ（最終更新 2026-09-30）
+
+■ 現在の状態
+・Phase 0〜12 の実装・自動テスト・資料作成まで完了（詳細は PROGRESS.md / TEST_REPORT.md）。
+・ブランチ: claude/operate-018（origin に push 済み）。作業フォルダ: 018-operate/
+
+■ 再開手順
+1. apt install postgresql-16-pgvector（未導入の場合）→ pg_ctlcluster 16 main start
+2. cd 018-operate && npm install
+3. server: npx vitest run（operate_test DB を自動作成）
+4. web: npx vite build → e2e: npx playwright test -c playwright.config.ts
+5. 負荷試験: load/README.txt の手順
+
+■ 人間が行う必要があること（RELEASE_CHECKLIST.md の未チェック項目）
+・公式料金ページでの運用費再確認、Anthropic 規約・データ保持の確認
+・iPhone / Android / iPad / Windows の実機確認（本セッションはエミュレーションのみ）
+・本番デプロイ（有料契約）、商標確認、価格・保守契約の決定
+
+■ Pro 版候補（初版では実装しない）
+SCIM/SAML SSO、Google/Microsoft Directory 同期、高度な共同編集、Slack/Teams 通知、外部 Drive 同期、
+高度な Workflow、API/Webhook、電子署名連携、多言語 AI 翻訳、動画ホスティング、Compliance mapping、
+custom retention / legal hold、MFA、メール送信サービス連携（SMTP/SES/Resend）

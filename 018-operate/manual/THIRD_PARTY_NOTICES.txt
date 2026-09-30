@@ -1,0 +1,44 @@
+THIRD_PARTY_NOTICES — Operate で使用している第三者ソフトウェア・フォント
+
+本製品は以下のオープンソースソフトウェアおよびフォントを利用しています。各ライセンスの全文は、
+同梱の node_modules 内の各パッケージの LICENSE ファイル、または下記の配布元で確認できます。
+（確認日: 2026-09-30。バージョンは package-lock.json に記録されたもの）
+
+■ フォント
+・Plus Jakarta Sans（Web UI の欧文表示、ロゴのワードマークの元デザイン）
+  ライセンス: SIL Open Font License 1.1
+  Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
+  配布: @fontsource-variable/plus-jakarta-sans 5.3.0（npm）。ロゴ（brand/*.svg）は ExtraBold のアウトラインを
+  パス化したもので、フォントファイル自体はロゴに含まれません。ライセンス全文: brand/src/OFL-PlusJakartaSans.txt
+・Noto Sans JP（PDF 出力：研修完了証・SOP PDF）
+  ライセンス: SIL Open Font License 1.1 / Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'
+  同梱: server/assets/fonts/NotoSansJP-Regular.otf, NotoSansJP-Bold.otf（ライセンス全文: server/assets/fonts/OFL.txt）
+
+■ サーバー（実行時）
+・fastify 5.12.5 / @fastify/cookie 11.1.2 / @fastify/multipart 10.1.2 / @fastify/static 10.1.5 — MIT
+・pg 8.23.0 — MIT
+・zod 4.6.5 — MIT
+・pdfkit 0.20.2 — MIT
+・archiver 8.0.0 — MIT
+・mammoth 1.13.0 — BSD-2-Clause
+・pdf-parse 1.1.4 — MIT
+・@anthropic-ai/sdk 0.129.0 — MIT
+・PostgreSQL 16 — PostgreSQL License / pgvector — PostgreSQL License / pg_trgm — PostgreSQL License（データベース側。別途インストール）
+
+■ Web（ブラウザに配信）
+・react 19.3.0 / react-dom 19.3.0 — MIT
+・react-router-dom 7.18.4 — MIT
+・@tiptap/core, @tiptap/react, @tiptap/pm, @tiptap/starter-kit, @tiptap/extension-table, @tiptap/extension-image,
+  @tiptap/extension-list, @tiptap/extension-highlight 3.31.3 — MIT（ProseMirror 各パッケージ — MIT）
+
+■ 開発・テストのみ（製品には含まれない）
+・vite 8.3.1 / @vitejs/plugin-react 6.1.1 — MIT
+・typescript 7.0.2 — Apache-2.0
+・tsx 4.23.15 / vitest 5.0.2 — MIT
+・@playwright/test 1.56.1 — Apache-2.0
+・@axe-core/playwright 4.13.0 — MPL-2.0
+・yauzl 3.4.0 — MIT
+・fonttools（ロゴ生成スクリプト, Python）— MIT
+
+上記以外の推移的依存パッケージのライセンスは `npx license-checker --production` 等で一覧化できます。
+販売前に最新の依存関係で再確認してください。

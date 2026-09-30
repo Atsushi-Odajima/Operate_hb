@@ -54,7 +54,7 @@ async function tenant(slug: string, users: number, docs: number, auditN: number)
   // two versions per document: v1.0 superseded, v1.1 published
   for (const [minor, status] of [[0, 'superseded'], [1, 'published']] as const) {
     await c.query(`INSERT INTO document_versions (org_id, document_id, major, minor, status, title, content, body_text, content_hash, published_at)
-      SELECT org_id, id, 1, $2, $3, title, '{"body":{"type":"doc","content":[]},"steps":[],"checklistItems":[]}', title || ' の手順。本人確認を行い、記録する。担当者に連絡する。', md5(id::text || $2), now()
+      SELECT org_id, id, 1, $2::int, $3, title, '{"body":{"type":"doc","content":[]},"steps":[],"checklistItems":[]}', title || ' の手順。本人確認を行い、記録する。担当者に連絡する。', md5(id::text || $2::int::text), now()
         FROM documents WHERE org_id = $1`, [org, minor, status]);
   }
   await c.query(`UPDATE documents d SET current_version_id = v.id FROM document_versions v WHERE v.document_id = d.id AND v.status = 'published' AND d.org_id = $1`, [org]);
