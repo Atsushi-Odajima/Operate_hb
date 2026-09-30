@@ -36,7 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (me) localStorage.setItem('op.me', JSON.stringify({ ...me, csrf: '' }));
   }, [me]);
   useEffect(() => {
-    const on = (e: Event) => { if ((e as CustomEvent).detail === 'external_expired') setExpired(true); setMe(null); };
+    const on = (e: Event) => {
+      if ((e as CustomEvent).detail === 'external_expired') setExpired(true);
+      // Forced logout (expiry, revocation, external access ended): drop cached documents too.
+      void clearOffline();
+      localStorage.removeItem('op.me');
+      setMe(null);
+    };
     window.addEventListener('op:unauthorized', on);
     return () => window.removeEventListener('op:unauthorized', on);
   }, []);

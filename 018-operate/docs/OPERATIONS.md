@@ -26,7 +26,7 @@ CREATE ROLE operate_app LOGIN PASSWORD '<強いパスワード>' NOSUPERUSER NOB
 | RUN_WORKER | true / false | Web プロセス内でワーカーを動かすか |
 | MIGRATE_ON_START | true | 起動時に migration |
 | ANTHROPIC_API_KEY | (任意) | AI provider=anthropic のときのみ |
-| EMAIL_MODE | log / off | 初版は log（送信内容の宛先を伏せてログ出力）。実送信は SMTP/送信サービス連携を追加実装 |
+| EMAIL_MODE | log / off | 初版は log（送信内容の宛先を伏せてログ出力）。off の場合は通知メールを送らず保留のまま（アプリ内通知は通常どおり）。実送信は SMTP/送信サービス連携を追加実装 |
 | SESSION_HOURS | 12 | |
 | MAX_UPLOAD_BYTES | 10485760 | |
 

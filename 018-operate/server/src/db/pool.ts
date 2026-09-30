@@ -49,7 +49,8 @@ export async function tx<T>(orgId: string, fn: (db: Db) => Promise<T>, p: pg.Poo
   const after: Array<() => void> = [];
   try {
     await client.query('BEGIN');
-    await client.query(`SELECT set_config('app.org_id', $1, true)`, [orgId]);
+    // jit off: request queries are short; JIT compile time (~0.5s) dominated large-tenant lists in load tests.
+    await client.query(`SELECT set_config('app.org_id', $1, true), set_config('jit', 'off', true)`, [orgId]);
     const res = await fn(wrap(client, orgId, after));
     await client.query('COMMIT');
     for (const f of after) f();

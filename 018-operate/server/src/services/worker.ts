@@ -56,7 +56,8 @@ async function sendEmails(db: Db, log: Log) {
   for (const r of rows) {
     try {
       // Only the title and an app link are sent — never document bodies.
-      if (config.emailMode === 'log') log.info({ to: r.email.replace(/(.).*@/, '$1***@'), subject: `[Operate] ${r.title}` }, 'email (log mode)');
+      // Only 'log' delivery exists; a real mail transport is wired in here before sending to real users.
+      log.info({ to: r.email.replace(/(.).*@/, '$1***@'), subject: `[Operate] ${r.title}` }, 'email (log mode)');
       await db.exec(sql`UPDATE notifications SET email_status = 'sent', email_attempts = email_attempts + 1 WHERE id = ${r.id}`);
     } catch (e: any) {
       await db.exec(sql`UPDATE notifications SET email_status = CASE WHEN email_attempts + 1 >= 5 THEN 'failed' ELSE 'pending' END, email_attempts = email_attempts + 1, email_last_error = ${String(e?.message ?? e).slice(0, 300)} WHERE id = ${r.id}`);
@@ -113,7 +114,8 @@ export function startWorker(log: Log) {
       await scheduleSweeps();
       await runDueJobs(log);
       const orgs = await sys(sql`SELECT id FROM worker_org_ids()`);
-      for (const o of orgs) await tx(o.id, (db) => sendEmails(db, log));
+      // EMAIL_MODE=off: leave notifications pending (nothing is delivered or marked sent).
+      if (config.emailMode === 'log') for (const o of orgs) await tx(o.id, (db) => sendEmails(db, log));
     } catch (e: any) {
       log.error({ err: e?.message }, 'worker tick failed');
     } finally {

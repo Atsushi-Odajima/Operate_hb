@@ -368,7 +368,7 @@ export default async function trainingRoutes(app: FastifyInstance) {
     if (ce.expires_at) doc.text(`有効期限: ${new Date(ce.expires_at).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })}`, { align: 'center', width: W });
     doc.text(`発行: ${ce.org_name}`, { align: 'center', width: W });
     doc.page.margins.bottom = 0;
-    doc.fontSize(9).fillColor('#64748B').text(`照合コード: ${ce.verification_code}（Operate の「修了証の照合」で確認できます）`, 0, doc.page.height - 110, { align: 'center', width: W });
+    doc.fontSize(9).fillColor('#64748B').text(`照合コード: ${ce.verification_code}（Operate の「研修完了証の照合」で確認できます）`, 0, doc.page.height - 110, { align: 'center', width: W });
     doc.text('本書は社内研修の完了記録であり、公的な資格・認証を証明するものではありません。', { align: 'center', width: W });
     const buf = await pdfToBuffer(doc);
     await audit(db, actor, 'export.certificate', { type: 'certificate', id: ce.id }, '研修完了証PDFを出力', {}, ip);

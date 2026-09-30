@@ -2,6 +2,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { apiCall, loginAs } from './helpers';
 
 test('主要画面に重大 (critical / serious) なアクセシビリティ違反がない', async ({ browser }) => {
@@ -29,7 +30,9 @@ test('主要画面に重大 (critical / serious) なアクセシビリティ違�
   const member = await loginAs(browser, 'newhire');
   await member.page.goto('/training');
   add('training', await scan(member.page, 'training'));
-  mkdirSync('../test-results', { recursive: true });
-  writeFileSync('../test-results/a11y.json', JSON.stringify(report, null, 2));
+  // Resolve from this file, not the process cwd (e2e may be started from the project root).
+  const outDir = resolve(__dirname, '../test-results');
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(resolve(outDir, 'a11y.json'), JSON.stringify(report, null, 2));
   expect(bad).toEqual({});
 });

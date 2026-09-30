@@ -18,7 +18,7 @@ export const config = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
   anthropicBaseUrl: env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
   webDist: process.env.WEB_DIST ? resolvePath(process.env.WEB_DIST) : '',
-  emailMode: env('EMAIL_MODE', 'log') as 'log' | 'smtp' | 'off',
+  emailMode: env('EMAIL_MODE', 'log') as 'log' | 'off',
   runWorkerInProcess: env('RUN_WORKER', 'true') === 'true',
   maxUploadBytes: Number(env('MAX_UPLOAD_BYTES', String(10 * 1024 * 1024))),
   get isProd() {

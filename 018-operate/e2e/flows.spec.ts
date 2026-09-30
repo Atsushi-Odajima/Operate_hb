@@ -9,6 +9,9 @@ import { gunzipSync } from 'node:zlib';
 import pg from 'pg';
 import yauzl from 'yauzl';
 import { apiCall, dialog, loginAs, waitFor } from './helpers';
+import { resolve } from 'node:path';
+
+const serverDir = resolve(__dirname, '../server');
 
 test.describe.configure({ mode: 'serial' });
 
@@ -368,8 +371,8 @@ test('E2E-10: Backup → 空環境へ Restore → currentVersion / ACL / Course 
   await root.query(`CREATE DATABASE ${dst} TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C.UTF-8' LC_CTYPE 'C.UTF-8'`);
   await root.end();
   const env = { ...process.env, DATABASE_ADMIN_URL: `postgres://postgres:postgres@127.0.0.1:5432/${dst}`, DATABASE_URL: `postgres://operate_app:operate_app@127.0.0.1:5432/${dst}` };
-  execFileSync('npx', ['tsx', 'src/cli/migrate.ts'], { cwd: '../server', env });
-  const out = execFileSync('npx', ['tsx', 'src/cli/restore.ts', file], { cwd: '../server', env }).toString();
+  execFileSync('npx', ['tsx', 'src/cli/migrate.ts'], { cwd: serverDir, env });
+  const out = execFileSync('npx', ['tsx', 'src/cli/restore.ts', file], { cwd: serverDir, env }).toString();
   expect(out).toContain('"restored": true');
   const a = new pg.Client({ connectionString: `postgres://postgres:postgres@127.0.0.1:5432/${src}` });
   const c = new pg.Client({ connectionString: `postgres://postgres:postgres@127.0.0.1:5432/${dst}` });
