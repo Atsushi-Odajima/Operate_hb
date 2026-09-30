@@ -1,0 +1,16 @@
+{
+  "name": "operate",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Operate — 会社のマニュアル・新人教育・ルール変更を、ひとつにまとめる。",
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "dev:server": "npm -w server run dev",
+    "dev:web": "npm -w web run dev",
+    "build": "npm -w server run build && npm -w web run build",
+    "test": "npm -w server run test",
+    "typecheck": "npm -w server run typecheck && npm -w web run typecheck",
+    "e2e": "playwright test -c e2e/playwright.config.ts"
+  },
+  "engines": { "node": ">=22" }
+}
