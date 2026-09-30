@@ -73,12 +73,20 @@ export async function retrieve(db: Db, a: Actor, question: string, opts: { histo
      ORDER BY c.embedding <=> ${qv}::vector
      LIMIT 60`);
   const terms = keyTerms(question);
+  const q = normalizeText(question);
+  const wantsFirst = /(最初|初め|はじめ|まず|一番目|1番目|first)/.test(q);
+  const wantsLast = /(最後|終わり|さいご|last)/.test(q);
+  const maxStep = Math.max(0, ...rows.map((r) => Number(/^手順(\d+)[:：]/.exec(r.section)?.[1] ?? 0)));
   return rows
     .map((r) => {
       const cov = coverage(terms, `${r.title} ${r.section} ${r.text}`);
+      const stepNo = Number(/^手順(\d+)[:：]/.exec(r.section)?.[1] ?? 0);
+      // small, explainable boosts: the section heading itself matches the question / ordinal questions ("最初の手順は？")
+      const sectionHit = terms.some((t) => normalizeText(r.section).includes(t)) ? 0.05 : 0;
+      const ordinal = (wantsFirst && stepNo === 1) || (wantsLast && stepNo > 0 && stepNo === maxStep) ? 0.15 : 0;
       return {
         chunkId: r.id, documentId: r.document_id, versionId: r.version_id, title: r.title, docNumber: r.doc_number, version: `${r.major}.${r.minor}`,
-        section: r.section, text: r.text, publishedAt: r.published_at, updatedAt: r.updated_at, coverage: cov, score: 0.5 * Number(r.vscore) + 0.5 * cov,
+        section: r.section, text: r.text, publishedAt: r.published_at, updatedAt: r.updated_at, coverage: cov, score: 0.5 * Number(r.vscore) + 0.5 * cov + sectionHit + ordinal,
       };
     })
     .sort((x, y) => y.score - x.score)

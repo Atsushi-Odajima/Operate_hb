@@ -138,7 +138,7 @@ export default async function adminRoutes(app: FastifyInstance) {
     const u = await db.one(sql`UPDATE users SET status = ${body.status}, updated_at = now() WHERE id = ${params.id} RETURNING name`);
     if (!u) throw notFound();
     if (body.status === 'disabled') {
-      await db.exec(sql`UPDATE sessions SET revoked_at = now() WHERE user_id = ${params.id} AND revoked_at IS NULL`);
+      await db.exec(sql`UPDATE sessions SET revoked_at = now(), revoked_reason = 'disabled' WHERE user_id = ${params.id} AND revoked_at IS NULL`);
       // Open training assignments of disabled users are cancelled (history kept); completed records remain.
       await db.exec(sql`UPDATE training_assignments SET status = 'cancelled' WHERE user_id = ${params.id} AND status IN ('not_started','in_progress')`);
       await db.exec(sql`UPDATE user_attestations SET status = 'cancelled' WHERE user_id = ${params.id} AND status = 'pending'`);
@@ -212,7 +212,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         external_allow_ai = coalesce(${body.allowAi ?? null}::boolean, external_allow_ai), updated_at = now() WHERE id = ${params.id}`);
     if (body.departmentIds) await setMemberships(db, params.id, body.departmentIds.map((departmentId) => ({ departmentId })));
     if (body.documentIds) await shareDocs(db, params.id, body.documentIds, actor.settings.classification.externalAllowed);
-    if (body.expiresAt && new Date(body.expiresAt) <= new Date()) await db.exec(sql`UPDATE sessions SET revoked_at = now() WHERE user_id = ${params.id} AND revoked_at IS NULL`);
+    if (body.expiresAt && new Date(body.expiresAt) <= new Date()) await db.exec(sql`UPDATE sessions SET revoked_at = now(), revoked_reason = 'external_expired' WHERE user_id = ${params.id} AND revoked_at IS NULL`);
     await audit(db, actor, 'external.update', { type: 'user', id: params.id }, `外部メンバー「${u.name}」の共有設定を変更`, { before: { expiresAt: u.external_expires_at }, after: body }, ip);
     return { ok: true };
   });
@@ -221,7 +221,7 @@ export default async function adminRoutes(app: FastifyInstance) {
     need(actor, 'external.manage');
     const u = await db.one(sql`UPDATE users SET external_expires_at = now(), updated_at = now() WHERE id = ${params.id} AND is_external RETURNING name`);
     if (!u) throw notFound();
-    await db.exec(sql`UPDATE sessions SET revoked_at = now() WHERE user_id = ${params.id} AND revoked_at IS NULL`);
+    await db.exec(sql`UPDATE sessions SET revoked_at = now(), revoked_reason = 'external_expired' WHERE user_id = ${params.id} AND revoked_at IS NULL`);
     await audit(db, actor, 'external.revoke', { type: 'user', id: params.id }, `外部メンバー「${u.name}」のアクセスを停止`, {}, ip);
     return { ok: true };
   });

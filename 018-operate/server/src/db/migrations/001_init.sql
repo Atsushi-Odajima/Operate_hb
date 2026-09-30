@@ -95,6 +95,7 @@ CREATE TABLE sessions (
   last_seen_at timestamptz NOT NULL DEFAULT now(),
   expires_at timestamptz NOT NULL,
   revoked_at timestamptz,
+  revoked_reason text,
   ip text,
   user_agent text
 );
@@ -753,6 +754,11 @@ CREATE POLICY tenant_isolation ON organizations USING (id = app_org()) WITH CHEC
 CREATE OR REPLACE FUNCTION auth_org_by_slug(p_slug text) RETURNS TABLE (id uuid, name text)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT o.id, o.name FROM organizations o WHERE o.slug = p_slug
+$$;
+-- Why a (recently) revoked session stopped working, so the UI can explain it (e.g. external share expired).
+CREATE OR REPLACE FUNCTION auth_session_revoked(p_id text) RETURNS TABLE (reason text)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT coalesce(s.revoked_reason, 'revoked') FROM sessions s WHERE s.id = p_id AND s.revoked_at IS NOT NULL AND s.revoked_at > now() - interval '30 days'
 $$;
 CREATE OR REPLACE FUNCTION auth_session(p_id text) RETURNS TABLE (org_id uuid, user_id uuid)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$

@@ -39,7 +39,7 @@ export async function sweepOrg(db: Db, now = new Date()) {
   const exp = await db.q(sql`SELECT u.id, u.name, u.external_expires_at FROM users u WHERE u.is_external AND u.external_expires_at <= now()
       AND NOT EXISTS (SELECT 1 FROM audit_events e WHERE e.action = 'external.expired' AND e.target_id = u.id::text AND e.detail->>'expiresAt' = to_json(u.external_expires_at)#>>'{}')`);
   for (const u of exp) {
-    await db.exec(sql`UPDATE sessions SET revoked_at = now() WHERE user_id = ${u.id} AND revoked_at IS NULL`);
+    await db.exec(sql`UPDATE sessions SET revoked_at = now(), revoked_reason = 'external_expired' WHERE user_id = ${u.id} AND revoked_at IS NULL`);
     await db.exec(sql`INSERT INTO audit_events (org_id, actor_label, action, target_type, target_id, summary, detail)
       SELECT ${db.orgId}, 'system', 'external.expired', 'user', ${u.id}, ${`外部メンバー「${u.name}」の共有期間が終了`}, jsonb_build_object('expiresAt', to_json(external_expires_at)#>>'{}') FROM users WHERE id = ${u.id}`);
   }

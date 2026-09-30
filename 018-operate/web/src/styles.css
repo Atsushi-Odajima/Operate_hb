@@ -3,7 +3,7 @@
   --navy: #0b1a33;
   --text: #0f172a;
   --muted: #475569;
-  --subtle: #64748b;
+  --subtle: #56627a;
   --line: #e2e8f0;
   --line-strong: #cbd5e1;
   --bg: #f6f8fb;
@@ -154,7 +154,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .list .title { font-weight: 700; color: var(--navy); }
 .empty { text-align: center; color: var(--subtle); padding: 28px 12px; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 16px; overflow-x: auto; }
-.tabs button { border: 0; background: none; font: inherit; font-weight: 700; color: var(--subtle); padding: 10px 14px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; min-height: 44px; }
+.tabs button { border: 0; background: none; font: inherit; font-weight: 700; color: var(--muted); padding: 10px 14px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; min-height: 44px; }
 .tabs button[aria-selected=true] { color: var(--blue); border-bottom-color: var(--blue); }
 .progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
 .progress > span { display: block; height: 100%; background: var(--blue-600); border-radius: 999px; }

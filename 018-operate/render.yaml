@@ -1,0 +1,29 @@
+# Render Blueprint example (review plan names/prices on render.com before use)
+databases:
+  - name: operate-db
+    plan: basic-1gb
+    postgresMajorVersion: "16"
+services:
+  - type: web
+    name: operate
+    runtime: docker
+    rootDir: 018-operate
+    plan: standard
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MIGRATE_ON_START
+        value: "true"
+      - key: RUN_WORKER
+        value: "true"
+      - key: APP_SECRET
+        generateValue: true
+      - key: PUBLIC_URL
+        sync: false
+      - key: DATABASE_ADMIN_URL
+        fromDatabase: { name: operate-db, property: connectionString }
+      - key: DATABASE_URL
+        sync: false   # connection string of the non-owner role operate_app (create it once, see docs/OPERATIONS.md)
+      - key: ANTHROPIC_API_KEY
+        sync: false

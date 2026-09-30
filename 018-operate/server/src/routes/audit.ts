@@ -2,7 +2,7 @@ import { ZipArchive } from 'archiver';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { tx, type Db } from '../db/pool.js';
-import { api, idParams, loadActor, resolveSession, zDate, zId } from '../http.js';
+import { api, idParams, loadActor, resolveSession, revokedReason, zDate, zId } from '../http.js';
 import { canDownload, has, need, type Actor } from '../lib/authz.js';
 import type { Content } from '../lib/content.js';
 import { sha256, token } from '../lib/crypto.js';
@@ -169,7 +169,7 @@ export default async function auditRoutes(app: FastifyInstance) {
   app.get('/api/downloads/:token', async (req, reply) => {
     const { token: tok } = z.object({ token: z.string().min(20).max(64) }).parse(req.params);
     const s = await resolveSession(req);
-    if (!s) throw unauthorized();
+    if (!s) throw await revokedReason(req);
     const out = await tx(s.orgId, async (db) => {
       const actor = await loadActor(db, s.sessionId, s.userId);
       const t = await db.one(sql`UPDATE download_tokens SET used_at = now() WHERE id = ${sha256(tok)} AND user_id = ${actor.id} AND used_at IS NULL AND expires_at > now() RETURNING *`);

@@ -76,7 +76,7 @@ export async function loadActor(db: Db, sessionId: string, userId: string): Prom
      WHERE u.id = ${userId}`);
   if (!u || u.status !== 'active') throw unauthorized();
   if (u.is_external && (!u.external_expires_at || new Date(u.external_expires_at) <= new Date())) {
-    await db.exec(sql`UPDATE sessions SET revoked_at = now() WHERE user_id = ${userId} AND revoked_at IS NULL`);
+    await db.exec(sql`UPDATE sessions SET revoked_at = now(), revoked_reason = 'external_expired' WHERE user_id = ${userId} AND revoked_at IS NULL`);
     throw new AppError(401, 'external_expired', '共有期間が終了しました');
   }
   if (Date.now() - new Date(u.last_seen_at).getTime() > 5 * 60_000) {
@@ -103,6 +103,16 @@ function checkCsrf(req: FastifyRequest, actor: Actor) {
   }
 }
 
+/** 401 for a missing session; tells the client when an external share ended so it can say so. */
+export async function revokedReason(req: FastifyRequest): Promise<AppError> {
+  const tok = req.cookies[SESSION_COOKIE];
+  if (tok && tok.length <= 200) {
+    const [r] = await sys(sql`SELECT reason FROM auth_session_revoked(${sha256(tok)})`);
+    if (r?.reason === 'external_expired') return new AppError(401, 'external_expired', '共有期間が終了しました');
+  }
+  return unauthorized();
+}
+
 export function clientIp(req: FastifyRequest) {
   return req.ip;
 }
@@ -123,7 +133,7 @@ export function api<B = unknown, Q = unknown, P = unknown>(
       const query = parse(opts.query, req.query);
       const body = parse(opts.body, req.body ?? {});
       const s = await resolveSession(req);
-      if (!s) throw unauthorized();
+      if (!s) throw await revokedReason(req);
       const result = await tx(s.orgId, async (db) => {
         const actor = await loadActor(db, s.sessionId, s.userId);
         if (method !== 'GET') checkCsrf(req, actor);

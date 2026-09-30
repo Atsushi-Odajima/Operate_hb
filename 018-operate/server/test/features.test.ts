@@ -302,3 +302,20 @@ describe('search fallback', () => {
     expect(r2.body.items.some((x: any) => x.id === S.docs.cs001)).toBe(false);
   });
 });
+
+describe('major revision defaults', () => {
+  it('a revision created as Major requires re-attestation unless turned off', async () => {
+    const r = await kadmin.post(`/api/documents/${S.docs.faq}/revisions`, { changeType: 'major' });
+    const v = await kadmin.get(`/api/versions/${r.body.id}`);
+    expect(v.body.require_reattestation).toBe(true);
+    expect(r.body.version).toBe('2.0');
+  });
+});
+
+describe('AI ranking', () => {
+  it('"最初の手順は？" cites step 1 first', async () => {
+    const r = await memberCs.post('/api/ai/ask', { question: '返金問い合わせの最初の手順は？' });
+    expect(r.body.citations[0].section).toMatch(/^手順1/);
+    expect(r.body.answer).toContain('本人確認');
+  });
+});

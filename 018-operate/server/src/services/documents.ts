@@ -133,6 +133,11 @@ export async function createRevision(db: Db, a: Actor, documentId: string, chang
   const base = await getVersion(db, d.current_version_id);
   const num = await nextNumber(db, documentId, changeType, base);
   const v = await insertVersion(db, a, documentId, num, base.title, normalizeContent(base.content), changeType, '', base.id, false);
+  if (changeType === 'major') {
+    // Major changes ask the audience to confirm again by default (the editor may turn it off before submitting).
+    await db.exec(sql`UPDATE document_versions SET require_reattestation = true WHERE id = ${v.id}`);
+    v.require_reattestation = true;
+  }
   await audit(db, a, 'version.create', { type: 'version', id: v.id }, `v${versionLabel(v)} の下書きを作成（元: v${versionLabel(base)}）`, { documentId, changeType }, ip);
   return v;
 }

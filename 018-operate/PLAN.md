@@ -26,7 +26,7 @@ SOP 作成 → レビュー → 承認 → 公開 → 権限別配布 → 検索
 | Test | Vitest (API 統合 / 権限 / AI) + Playwright (E2E, PC/iPhone/Android/iPad エミュレーション) | |
 
 ## 2. マルチテナント
-* 全業務テーブルに `org_id`。アプリは **非 owner の DB ロール** で接続し、全テーブルに **Row Level Security** (`org_id = current_setting('app.org_id')`) を FORCE。
+* 全業務テーブルに `org_id`。アプリは **非 owner の DB ロール**（NOBYPASSRLS）で接続し、全テーブルの **Row Level Security** (`org_id = app_org()`) の対象になる。
 * 1 リクエスト = 1 トランザクション、`set_config('app.org_id', …, true)` を最初に実行。アプリの WHERE 句の付け忘れがあっても他 tenant 行は DB が返さない（二重防御）。
 * 監査ログは INSERT/SELECT 権限のみ（UPDATE/DELETE 不可 + trigger）。
 

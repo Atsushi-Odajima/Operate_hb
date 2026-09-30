@@ -493,6 +493,7 @@ describe('External / Audit / Backup', () => {
     expect(r.status).toBe(200);
     const after = await partner.get(`/api/documents/${S.docs.ops020}`);
     expect(after.status).toBe(401);
+    expect(after.body.error).toBe('external_expired');
     // can't log in again either
     await expect(login('partner')).rejects.toThrow(/401/);
     const log = await auditor.get(`/api/audit?targetId=${S.users.partner}`);

@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { config } from '../config.js';
 import { tx } from '../db/pool.js';
-import { api, idParams, loadActor, resolveSession } from '../http.js';
+import { api, idParams, loadActor, resolveSession, revokedReason } from '../http.js';
 import { canDownload, docAccessible, has } from '../lib/authz.js';
 import { sha256 } from '../lib/crypto.js';
 import { badRequest, forbidden, notFound, unauthorized } from '../lib/errors.js';
@@ -70,7 +70,7 @@ export default async function fileRoutes(app: FastifyInstance) {
   app.get('/api/attachments/:id/content', async (req, reply) => {
     const { id } = idParams.parse(req.params);
     const s = await resolveSession(req);
-    if (!s) throw unauthorized();
+    if (!s) throw await revokedReason(req);
     const file = await tx(s.orgId, async (db) => {
       const actor = await loadActor(db, s.sessionId, s.userId);
       const f = await db.one(sql`SELECT a.id, a.filename, a.mime, a.data, a.kind, a.document_id, d.classification FROM attachments a
